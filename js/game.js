@@ -6,6 +6,7 @@ var bullets;
 var localPlayer;
 var remotePlayers = {};
 var REMOTE_PLAYERS = {};
+var remoteBullets = {};
 var remoteBullet; 
 var bullet;
 
@@ -28,6 +29,7 @@ SideScroller.Game.prototype = {
     // this.backgroundlayer.resizeWorld();
     socket = io.connect('http://localhost:3000');
     createRemotePlayers()
+    createRemoteBullets()
     addSocketHandlers();
 
     localPlayer = this.game.add.sprite(100, 200, 'player');
@@ -64,7 +66,10 @@ SideScroller.Game.prototype = {
     localPlayer.body.velocity.x = 0;
 
     // localPlayer.animations.play('idlee', 5, true)
+    this.game.physics.arcade.collide(remoteBullets, this.blockedlayer, collisionHandler, null, this);
     this.game.physics.arcade.collide(bullets, this.blockedlayer, collisionHandler, null, this);
+
+
     if (this.fireButton.isDown){
       localPlayer.animations.play('attackk', 25, true);
       if (this.game.time.now > bulletTime) {
@@ -74,6 +79,7 @@ SideScroller.Game.prototype = {
                 bullet.reset(localPlayer.x + 85, localPlayer.y + 53);
                 //Bullet speed
                 bullet.body.velocity.x = 400;
+                socket.emit("bulletShot", {id: socket.id, bulletX: bullet.x, bulletY: bullet.y});
                 console.log("this is my bullet's x: "+ bullet.x);
                 console.log("this is my bullet's y: "+ bullet.y);
                 // socket.emit("bulletShot", {id: socket.id, bulletX: bullet.x, bulletY: bullet.y})
@@ -153,9 +159,9 @@ SideScroller.Game.prototype = {
       }
     // console.log("this is my x: " + localPlayer.x)
     // console.log("this is my y: " + localPlayer.y)
-    if(bullet){
-      socket.emit("bulletShot", {id: socket.id, bulletX: bullet.x, bulletY: bullet.y});
-    }
+    // if(bullet){
+
+    // }
     socket.emit('movement', {id: socket.id, x: localPlayer.x, y: localPlayer.y})
     // socket.on('playerMovement', onPlayerMovement);  
   },
@@ -199,14 +205,22 @@ function onRemotePlayerBullet(data) {
   console.log("remote player's bullet x: " + data.x);
   console.log(data.y);
 
-
-  remoteBullet.x = data.x;
-  remoteBullet.y = data.y;
-  // remoteBullet.enableBody = true;
+  this.remoteBullet = remoteBullets.create(
+    data.x,
+    data.y + 5,
+    'bullet'
+    )
+  this.remoteBullet.body.velocity.x = 400;
+  // console.log(remoteBullet.body)
+  // remoteBullet.x = data.x;
+  // remoteBullet.y = data.y + 5;
+  // remoteBullet = bullet;
+  // bullet.body.velocity.x = 400;
+  remoteBullet.enableBody = true;
   SideScroller.game.physics.enable(remoteBullet,Phaser.Physics.ARCADE);
   
-  // remoteBullet.physicsBodyType = Phaser.Physics.ARCADE;
-  // remoteBullet.body.velocity.x = 400;
+  remoteBullet.physicsBodyType = Phaser.Physics.ARCADE;
+  remoteBullet.body.velocity.x = 400;
 }
 
 function onNewRemotePlayer(data){
@@ -221,9 +235,15 @@ function onNewRemotePlayer(data){
   console.log(socket.id)
   if(data.id != "/#" + socket.id){
     createRemotePlayer(data);
-    remoteBullet = SideScroller.game.add.sprite(-50, -50, 'bullet');
+    createRemoteBullets()
   }
 };
+
+function createRemoteBullets(){
+  remoteBullets = SideScroller.game.add.group();
+  remoteBullets.enableBody = true;
+  remoteBullets.physicsBodyType = Phaser.Physics.ARCADE;
+}
 
 function createRemotePlayers(){
   console.log("i got to create remote players")
@@ -264,6 +284,7 @@ function onRemovePlayer(data){
 }
 
 function collisionHandler(bullet, object){
+  console.log("i got to collision handler!")
   bullet.kill();
 }
 
