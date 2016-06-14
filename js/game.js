@@ -7,8 +7,10 @@ var localPlayer;
 var remotePlayers = {};
 var REMOTE_PLAYERS = {};
 var remoteBullets = {};
-var remoteBullet; 
+// var remoteBullet; 
 var bullet;
+
+var bulletHitPlayer = false;
 
 
 SideScroller.Game = function(){};
@@ -63,13 +65,14 @@ SideScroller.Game.prototype = {
   update: function(){
     this.game.physics.arcade.collide(localPlayer, this.blockedlayer)
     this.game.physics.arcade.collide(remotePlayers, this.blockedlayer);
+    // this.game.physics.arcade.collide(remoteBullets, localPlayer);
     localPlayer.body.velocity.x = 0;
 
     // localPlayer.animations.play('idlee', 5, true)
     this.game.physics.arcade.collide(remoteBullets, this.blockedlayer, collisionHandler, null, this);
     this.game.physics.arcade.collide(bullets, this.blockedlayer, collisionHandler, null, this);
-
-
+    this.game.physics.arcade.collide(remoteBullets, localPlayer, processHandler, null, this);
+    this.game.physics.arcade.overlap(bullets, remotePlayers, processHandler2, null, this);
     if (this.fireButton.isDown){
       localPlayer.animations.play('attackk', 25, true);
       if (this.game.time.now > bulletTime) {
@@ -216,11 +219,11 @@ function onRemotePlayerBullet(data) {
   // remoteBullet.y = data.y + 5;
   // remoteBullet = bullet;
   // bullet.body.velocity.x = 400;
-  remoteBullet.enableBody = true;
+  this.remoteBullet.enableBody = true;
   SideScroller.game.physics.enable(remoteBullet,Phaser.Physics.ARCADE);
   
-  remoteBullet.physicsBodyType = Phaser.Physics.ARCADE;
-  remoteBullet.body.velocity.x = 400;
+  this.remoteBullet.physicsBodyType = Phaser.Physics.ARCADE;
+  this.remoteBullet.body.velocity.x = 400;
 }
 
 function onNewRemotePlayer(data){
@@ -266,6 +269,7 @@ function createRemotePlayer(data){
   var color = Math.random() * 0xffffff
   // remotePlayer.anchor.setTo(0.5, 0.5);
   SideScroller.game.physics.enable(remotePlayer, Phaser.Physics.ARCADE);
+  remotePlayer.enableBody = true;
   remotePlayer.body.collideWorldBounds = true;
   remotePlayer.name = player;
   remotePlayer.body.immovable = true;
@@ -283,14 +287,28 @@ function onRemovePlayer(data){
   delete REMOTE_PLAYERS[data.id];
 }
 
-function collisionHandler(bullet, object){
-  console.log("i got to collision handler!")
+function processHandler(bullet, object){
+  console.log("i got to process handler")
+  console.log(bullet)
+  console.log(object)
+  object.kill();
+  bulletHitPlayer = true;
+  console.log(bulletHitPlayer);
+}
+
+function processHandler2(bullet, object){
+  console.log("i got to process handler")
+  console.log(bullet)
+  console.log(object)
   bullet.kill();
+}
+
+function collisionHandler(bullet1, object){
+  console.log("i got to collision handler!")
+  bullet1.kill();
 }
 
 // function onRemovePlayer(data){
 //     console.log("i got to onRemovePlayer")
 //     delete REMOTE_PLAYERS[data.id];
 // }
-
-

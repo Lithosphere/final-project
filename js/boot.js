@@ -9,7 +9,7 @@ SideScroller.Boot.prototype = {
   },
 
   create: function(){
-    this.game.stage.backgroundColor = "black";
+    this.game.stage.backgroundColor = "#87CEFA";
     this.stage.disableVisibilityChange = false;
     this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
     this.scale.pageAlignHorizontally = true;
