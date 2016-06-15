@@ -1,5 +1,4 @@
 var SideScroller = SideScroller || {};
-
 SideScroller.Preload = function(){};
 
 SideScroller.Preload.prototype = {

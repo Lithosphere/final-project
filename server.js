@@ -5,6 +5,7 @@ var io = require('socket.io')(server);
 var self;
 
 var SOCKETS_LIST = {};
+var lobby = [];
 
 app.use('/', express.static(__dirname));
 
@@ -22,12 +23,16 @@ function onSocketConnection(socket){
       console.log(data.bulletX)
       socket.broadcast.emit('remotePlayerBullet', {id: data.id, x: data.bulletX, y: data.bulletY})
   });
+  socket.on('lobby', onLobby);
+
 
 };
 
+
+
 function onPlayerMovement(data){
     var pack = {}
-    console.log("on player movement")
+    // console.log("on player movement")
     pack = {
       id: data.id,
       x: data.x,
@@ -36,7 +41,18 @@ function onPlayerMovement(data){
     this.broadcast.emit('playerMovement', {id: this.id, x: data.x, y: data.y})
 };
 
+function onLobby(data){
+  console.log("got onto on lobby")
 
+  lobby.push(data.name)
+    console.log(lobby.length)
+    // console.log(lobby)
+  if(lobby.length === 2){
+    self.broadcast.emit('gameStart', {players: [lobby[0], lobby[1], lobby[2], lobby[3]]});
+    // self.emit('gameStart', {id: "hello"})
+    self.emit('gameStart', {players: [lobby[0], lobby[1], lobby[2], lobby[3]]})
+  }
+}
 function onClientDisconnect(){
   console.log("i got to onClientDisconnect")
   delete SOCKETS_LIST[this.id];

@@ -1,6 +1,5 @@
 var SideScroller = SideScroller || {};
 var specialC;
-var socket;
 var bulletTime = 0;
 var bullets;
 var localPlayer;
@@ -9,9 +8,69 @@ var REMOTE_PLAYERS = {};
 var remoteBullets = {};
 // var remoteBullet; 
 var bullet;
-
+var socket
 var bulletHitPlayer = false;
 var afterHitSpeed = 0.5;
+// var fullLobby = false;
+SideScroller.Boot = function(){};
+
+//setting game configuration and loading assets for the loading screen.
+
+SideScroller.Boot.prototype = {
+  preload: function(){
+    this.load.image('preloadbar', 'assets/images/preloader-bar.png');
+  },
+
+  create: function(){
+    this.game.stage.backgroundColor = "#87CEFA";
+    this.stage.disableVisibilityChange = false;
+    this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+    this.scale.pageAlignHorizontally = true;
+    this.scale.pageAlignVertically = true;
+    // this.scale.setScreenSize(true);
+    this.game.physics.startSystem(Phaser.Physics.ARCADE);
+    this.state.start('Preload');
+  }
+}
+
+SideScroller.Preload = function(){};
+
+SideScroller.Preload.prototype = {
+  preload: function(){
+    this.preloadbar = this.add.sprite(this.game.world.centerX, this.game.world.centerY, 'preloadbar');
+    this.preloadbar.anchor.setTo(0.5, 0.5);
+    this.preloadbar.scale.setTo(3);
+    this.load.setPreloadSprite(this.preloadbar);
+
+    this.load.tilemap('level1', 'assets/tilemaps/map10.json', null, Phaser.Tilemap.TILED_JSON);
+    this.load.image('gameTiles', 'assets/images/orig_tiles_spritesheet2.png');
+    this.load.spritesheet('player', 'assets/images/enemymoving.png', 68, 96);
+    // this.load.image('playerDuck', 'assets/images/player_duck.png');
+    // this.load.image('playerDead', 'assets/images/player_dead.png');
+    // this.load.image('goldCoin', 'assets/images/goldCoin.png');
+    // this.load.audio('coin', 'assets/audio/coin.wav');
+    this.load.image('bullet', '/assets/images/bullet.png')
+  },
+
+  create: function(){
+    this.state.start('Game');
+    // socket = io.connect('http://localhost:3000');
+
+    // socket.name = "yoooo"
+    // console.log(socket.name + Math.random())
+    // console.log(socket)
+    // socket.emit('lobby', {name: socket.name})
+    // socket.on('gameStart', checkIfPlayer);
+
+  },
+
+  // update: function(){
+  //   // if(fullLobby == true){
+
+  //   // }
+  // }
+}
+
 
 SideScroller.Game = function(){};
 
@@ -30,12 +89,15 @@ SideScroller.Game.prototype = {
     // this.blockedlayer.debug = true;
     this.map.setCollisionBetween(1, 100000, true, 'blockedLayer');
     // this.backgroundlayer.resizeWorld();
+    // if(socket == undefined){
+    // }
     socket = io.connect('http://localhost:3000');
     createRemotePlayers()
     createRemoteBullets()
     addSocketHandlers();
 
     localPlayer = this.game.add.sprite(100, 200, 'player');
+
     this.game.physics.arcade.enable(localPlayer);
     this.game.camera.follow(localPlayer);
 
@@ -49,7 +111,7 @@ SideScroller.Game.prototype = {
     bullets.setAll('outOfBoundsKill', true);
     bullets.setAll('checkWorldBounds', true);
     socket.on('playerMovement', onPlayerMovement);
-    localPlayer.body.gravity.y = 1000;
+    localPlayer.body.gravity.y = 800;
     // remotePlayers.animations.add('walkk', 25, true); 
     localPlayer.animations.add('idlee', [0,1,2]);
     localPlayer.animations.add('attackk', [3,4,5,6,7,8,9,10,11,12]);
@@ -231,8 +293,8 @@ SideScroller.Game.prototype = {
       if(localPlayer.x >= this.game.world.width) {
         this.game.state.start('Game');
       }
-    console.log("this is my x: " + localPlayer.x)
-    console.log("this is my y: " + localPlayer.y)
+    // console.log("this is my x: " + localPlayer.x)
+    // console.log("this is my y: " + localPlayer.y)
     // if(bullet){
 
     // }
@@ -375,6 +437,17 @@ function processHandler(bullet, object){
 
 function fasterFunc(){
   bulletHitPlayer = false;
+}
+
+function checkIfPlayer(data){
+  // console.log(data.id);
+  // if(data.players[0] != socket.name ||
+  //   data.players[1] != socket.name ||
+  //   data.players[2] != socket.name ||
+  //   data.players[3] != socket.name
+  //   ) {
+       fullLobby = true;
+  // }consol
 }
 
 function processHandler2(bullet, object){
