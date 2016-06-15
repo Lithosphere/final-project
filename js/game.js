@@ -24,9 +24,10 @@ SideScroller.Game.prototype = {
     this.map = this.game.add.tilemap('level1');
     this.map.addTilesetImage('orig_tiles_spritesheet', 'gameTiles')
     // this.backgroundlayer = this.map.createLayer('backgroundLayer');
-    this.game.world.setBounds(0,0,7000,830);
+    this.game.world.setBounds(0,0,8000,1540);
 
     this.blockedlayer = this.map.createLayer('blockedLayer');
+    // this.blockedlayer.debug = true;
     this.map.setCollisionBetween(1, 100000, true, 'blockedLayer');
     // this.backgroundlayer.resizeWorld();
     socket = io.connect('http://localhost:3000');
@@ -56,7 +57,7 @@ SideScroller.Game.prototype = {
     localPlayer.animations.add('jumpp', [23,24,25,26,27,28,29,30,31,32]);
     localPlayer.animations.add('runn', [33,34,35,36,37,38,39,40,41,42]);
     localPlayer.animations.add('walkk', [43,44,45,46,47,48,49,50,51,52]);
-    specialC = this.game.input.keyboard.addKey(Phaser.Keyboard.C);
+    specialC = this.game.input.keyboard.addKey(Phaser.KeyCode.TILDE);
     this.fireButton = this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
     this.cursors = this.game.input.keyboard.createCursorKeys();
     // socket.on('playerMovement', onPlayerMovement);  
@@ -73,6 +74,7 @@ SideScroller.Game.prototype = {
     this.game.physics.arcade.collide(bullets, this.blockedlayer, collisionHandler, null, this);
     this.game.physics.arcade.collide(remoteBullets, localPlayer, processHandler, null, this);
     this.game.physics.arcade.overlap(bullets, remotePlayers, processHandler2, null, this);
+    // this.game.physics.arcade.collide(remotePlayers, localPlayer);
     // if (this.fireButton.isDown){
     //   localPlayer.animations.play('attackk', 25, true);
     //   if (this.game.time.now > bulletTime) {
@@ -229,8 +231,8 @@ SideScroller.Game.prototype = {
       if(localPlayer.x >= this.game.world.width) {
         this.game.state.start('Game');
       }
-    // console.log("this is my x: " + localPlayer.x)
-    // console.log("this is my y: " + localPlayer.y)
+    console.log("this is my x: " + localPlayer.x)
+    console.log("this is my y: " + localPlayer.y)
     // if(bullet){
 
     // }
@@ -239,7 +241,12 @@ SideScroller.Game.prototype = {
   },
   render: function(){
     this.game.debug.text(this.game.time.fps || "---", 20, 70, "#00ff00", "40px Courier");
-  }
+
+    // Sprite debug info
+    this.game.debug.spriteInfo(localPlayer, 32, 32);
+
+}
+  
 
 };
 
@@ -279,7 +286,7 @@ function onRemotePlayerBullet(data) {
 
   this.remoteBullet = remoteBullets.create(
     data.x,
-    data.y + 5,
+    data.y - 13,
     'bullet'
     )
   this.remoteBullet.body.velocity.x = 400;
